@@ -53,7 +53,7 @@ func TestHandler_RetrieveSentMessages(t *testing.T) {
 			wantStatus: fiber.StatusOK,
 			wantBody:   string(sampleSentMessageContentByte),
 			beforeSuite: func() {
-				mockService.EXPECT().RetriveSentMessages().Return(sampleSentMessages, nil)
+				mockService.EXPECT().RetrieveSentMessages().Return(sampleSentMessages, nil)
 			},
 		},
 		{
@@ -62,7 +62,7 @@ func TestHandler_RetrieveSentMessages(t *testing.T) {
 			wantStatus: fiber.StatusNotFound,
 			wantBody:   `Not Found`,
 			beforeSuite: func() {
-				mockService.EXPECT().RetriveSentMessages().Return(nil, ErrDocumentNotFound)
+				mockService.EXPECT().RetrieveSentMessages().Return(nil, ErrDocumentNotFound)
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func TestHandler_RetrieveSentMessages(t *testing.T) {
 			wantStatus: fiber.StatusInternalServerError,
 			wantBody:   `Internal Server Error`,
 			beforeSuite: func() {
-				mockService.EXPECT().RetriveSentMessages().Return(nil, fiber.ErrInternalServerError)
+				mockService.EXPECT().RetrieveSentMessages().Return(nil, fiber.ErrInternalServerError)
 			},
 		},
 	}

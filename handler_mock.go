@@ -39,17 +39,17 @@ func (m *MockMessageService) EXPECT() *MockMessageServiceMockRecorder {
 	return m.recorder
 }
 
-// RetriveSentMessages mocks base method.
-func (m *MockMessageService) RetriveSentMessages() ([]Message, error) {
+// RetrieveSentMessages mocks base method.
+func (m *MockMessageService) RetrieveSentMessages() ([]Message, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RetriveSentMessages")
+	ret := m.ctrl.Call(m, "RetrieveSentMessages")
 	ret0, _ := ret[0].([]Message)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// RetriveSentMessages indicates an expected call of RetriveSentMessages.
-func (mr *MockMessageServiceMockRecorder) RetriveSentMessages() *gomock.Call {
+// RetrieveSentMessages indicates an expected call of RetrieveSentMessages.
+func (mr *MockMessageServiceMockRecorder) RetrieveSentMessages() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetriveSentMessages", reflect.TypeOf((*MockMessageService)(nil).RetriveSentMessages))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RetrieveSentMessages", reflect.TypeOf((*MockMessageService)(nil).RetrieveSentMessages))
 }

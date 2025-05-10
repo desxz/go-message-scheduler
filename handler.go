@@ -9,7 +9,7 @@ import (
 )
 
 type MessageService interface {
-	RetriveSentMessages() ([]Message, error)
+	RetrieveSentMessages() ([]Message, error)
 }
 
 type Message struct {
@@ -37,7 +37,7 @@ func (h *MessageHandler) RegisterRoutes(app *fiber.App) {
 }
 
 func (h *MessageHandler) RetriveSentMessages(c *fiber.Ctx) error {
-	sentMessages, err := h.messageService.RetriveSentMessages()
+	sentMessages, err := h.messageService.RetrieveSentMessages()
 	if err != nil {
 		if errors.Is(err, ErrDocumentNotFound) {
 			return c.SendStatus(fiber.StatusNotFound)
