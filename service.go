@@ -1,6 +1,10 @@
 package main
 
-import "errors"
+import (
+	"errors"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 var (
 	ErrDocumentNotFound    = errors.New("document not found")
@@ -22,5 +26,13 @@ func NewMessageServiceImpl(mr MessageRepository) *MessageServiceImpl {
 }
 
 func (ms *MessageServiceImpl) RetrieveSentMessages() ([]Message, error) {
-	return nil, nil
+	sentMessages, err := ms.messageRepository.RetrieveSentMessages()
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, ErrDocumentNotFound
+		}
+		return nil, ErrInternalServerError
+	}
+
+	return sentMessages, nil
 }
