@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/desxz/go-message-scheduler/client"
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -44,10 +45,10 @@ func TestWorker_ProcessMessage(t *testing.T) {
 
 				mockRepo.EXPECT().FetchAndMarkProcessing(gomock.Any()).Return(message, nil)
 
-				mockWebhookClient.EXPECT().PostMessage(gomock.Any(), &WebhookRequest{
+				mockWebhookClient.EXPECT().PostMessage(gomock.Any(), &client.WebhookRequest{
 					To:      message.RecipientPhoneNumber,
 					Content: message.Content,
-				}).Return(&WebhookResponse{
+				}).Return(&client.WebhookResponse{
 					Message:   "Accepted",
 					MessageID: "webhook-message-id",
 				}, nil)
@@ -73,7 +74,7 @@ func TestWorker_ProcessMessage(t *testing.T) {
 
 				mockRepo.EXPECT().FetchAndMarkProcessing(gomock.Any()).Return(message, nil)
 
-				mockWebhookClient.EXPECT().PostMessage(gomock.Any(), &WebhookRequest{
+				mockWebhookClient.EXPECT().PostMessage(gomock.Any(), &client.WebhookRequest{
 					To:      message.RecipientPhoneNumber,
 					Content: message.Content,
 				}).Return(nil, assert.AnError)

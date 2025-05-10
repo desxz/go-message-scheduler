@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	client "github.com/desxz/go-message-scheduler/client"
 	primitive "go.mongodb.org/mongo-driver/bson/primitive"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -109,10 +110,10 @@ func (m *MockWebhookClient) EXPECT() *MockWebhookClientMockRecorder {
 }
 
 // PostMessage mocks base method.
-func (m *MockWebhookClient) PostMessage(ctx context.Context, message *WebhookRequest) (*WebhookResponse, error) {
+func (m *MockWebhookClient) PostMessage(ctx context.Context, message *client.WebhookRequest) (*client.WebhookResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PostMessage", ctx, message)
-	ret0, _ := ret[0].(*WebhookResponse)
+	ret0, _ := ret[0].(*client.WebhookResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

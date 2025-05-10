@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/desxz/go-message-scheduler/client"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -16,23 +17,13 @@ type WorkerMessageStore interface {
 	MarkAsFailed(ctx context.Context, messageID primitive.ObjectID) error
 }
 
-type WebhookResponse struct {
-	Message   string `json:"message"`
-	MessageID string `json:"messageId"`
-}
-
-type WebhookRequest struct {
-	To      string `json:"to"`
-	Content string `json:"content"`
-}
-
 type WebhookClient interface {
-	PostMessage(ctx context.Context, message *WebhookRequest) (*WebhookResponse, error)
+	PostMessage(ctx context.Context, message *client.WebhookRequest) (*client.WebhookResponse, error)
 }
 
 type WorkerConfig struct {
-	WorkerJobTimeout  time.Duration `mapstructure:"workerJobTimeout"`
-	WorkerJobInterval time.Duration `mapstructure:"workerJobInterval"`
+	ProcessMessageTimeout time.Duration `mapstructure:"processMessageTimeout"`
+	WorkerJobInterval     time.Duration `mapstructure:"workerJobInterval"`
 }
 
 type WorkerInstance struct {
@@ -52,7 +43,7 @@ func NewWorkerInstance(id string, workerMessageStore WorkerMessageStore, webhook
 	}
 }
 
-func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup) {
+func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup, stopChan chan struct{}) {
 	defer wg.Done()
 
 	w.logger.Info("Worker started")
@@ -61,7 +52,9 @@ func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup) {
 		select {
 		case <-ctx.Done():
 			w.logger.Info("Worker received shutdown signal, stopping gracefully")
-			// TODO: Implement graceful shutdown logic here
+			return
+		case <-stopChan:
+			w.logger.Info("Worker received stop signal, stopping gracefully")
 			return
 		default:
 			processed, err := w.ProcessMessage(ctx)
@@ -78,7 +71,7 @@ func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
-	opCtx, cancel := context.WithTimeout(ctx, w.config.WorkerJobTimeout)
+	opCtx, cancel := context.WithTimeout(ctx, w.config.ProcessMessageTimeout)
 	defer cancel()
 
 	message, err := w.workerMessageStore.FetchAndMarkProcessing(opCtx)
@@ -91,7 +84,7 @@ func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
 
 	w.logger.Info("Processing message", zap.String("message_id", message.ID.Hex()))
 
-	res, err := w.webhookClient.PostMessage(opCtx, &WebhookRequest{
+	res, err := w.webhookClient.PostMessage(opCtx, &client.WebhookRequest{
 		To:      message.RecipientPhoneNumber,
 		Content: message.Content,
 	})
