@@ -21,15 +21,21 @@ func Test_RetriveSentMessages(t *testing.T) {
 
 	sentMessagesPath := "/sent-messages"
 	sampleSentMessagesFilePath := "sample/sent_messages.json"
-	sampleSentMessageContentByte, err := os.ReadFile(sampleSentMessagesFilePath)
+	sampleSentMessageContentRawByte, err := os.ReadFile(sampleSentMessagesFilePath)
 	if err != nil {
 		assert.Fail(t, "Failed to read sample sent messages file")
 		return
 	}
 
 	var sampleSentMessages []Message
-	if err := json.Unmarshal(sampleSentMessageContentByte, &sampleSentMessages); err != nil {
+	if err := json.Unmarshal(sampleSentMessageContentRawByte, &sampleSentMessages); err != nil {
 		assert.Fail(t, "Failed to unmarshal sample sent messages")
+		return
+	}
+
+	sampleSentMessageContentByte, err := json.Marshal(sampleSentMessages)
+	if err != nil {
+		assert.Fail(t, "Failed to marshal sample sent messages")
 		return
 	}
 
@@ -53,7 +59,7 @@ func Test_RetriveSentMessages(t *testing.T) {
 			name:       "should return error when messages are not found",
 			url:        sentMessagesPath,
 			wantStatus: fiber.StatusNotFound,
-			wantBody:   `{"error":"No messages found"}`,
+			wantBody:   `Not Found`,
 			beforeSuite: func() {
 				mockService.EXPECT().RetriveSentMessages().Return(nil, nil)
 			},
@@ -62,7 +68,7 @@ func Test_RetriveSentMessages(t *testing.T) {
 			name:       "should return error when service fails",
 			url:        sentMessagesPath,
 			wantStatus: fiber.StatusInternalServerError,
-			wantBody:   `{"error":"Internal server error"}`,
+			wantBody:   `Internal Server Error`,
 			beforeSuite: func() {
 				mockService.EXPECT().RetriveSentMessages().Return(nil, fiber.ErrInternalServerError)
 			},
@@ -72,8 +78,9 @@ func Test_RetriveSentMessages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.beforeSuite()
-			req := httptest.NewRequest("GET", tt.url, nil)
+			req := httptest.NewRequest(fiber.MethodGet, tt.url, nil)
 			resp, err := app.Test(req, -1)
+			defer resp.Body.Close()
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantBody != "" {

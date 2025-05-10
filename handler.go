@@ -36,5 +36,14 @@ func (h *MessageHandler) RegisterRoutes(app *fiber.App) {
 }
 
 func (h *MessageHandler) RetriveSentMessages(c *fiber.Ctx) error {
-	return nil
+	sentMessages, err := h.messageService.RetriveSentMessages()
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	if len(sentMessages) == 0 {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	return c.JSON(sentMessages)
 }
