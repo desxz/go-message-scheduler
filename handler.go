@@ -36,6 +36,16 @@ func (h *MessageHandler) RegisterRoutes(app *fiber.App) {
 	app.Get("/sent-messages", h.RetriveSentMessages)
 }
 
+// RetriveSentMessages godoc
+// @Summary Retrieve all sent messages
+// @Description Get all successfully sent messages
+// @Tags messages
+// @Accept json
+// @Produce json
+// @Success 200 {array} Message
+// @Failure 404 {object} nil "No sent messages found"
+// @Failure 500 {object} nil "Internal server error"
+// @Router /sent-messages [get]
 func (h *MessageHandler) RetriveSentMessages(c *fiber.Ctx) error {
 	sentMessages, err := h.messageService.RetrieveSentMessages()
 	if err != nil {

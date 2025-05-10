@@ -1,0 +1,54 @@
+basePath: /
+definitions:
+  main.Message:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      recipient_phone_number:
+        type: string
+      sent_at:
+        type: string
+      status:
+        type: string
+      webhook_response_message_id:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: your-email@example.com
+    name: API Support
+  description: API for scheduling and managing messages
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Message Scheduler API
+  version: "1.0"
+paths:
+  /sent-messages:
+    get:
+      consumes:
+      - application/json
+      description: Get all successfully sent messages
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Message'
+            type: array
+        "404":
+          description: No sent messages found
+        "500":
+          description: Internal server error
+      summary: Retrieve all sent messages
+      tags:
+      - messages
+swagger: "2.0"

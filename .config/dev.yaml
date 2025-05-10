@@ -1,4 +1,4 @@
 worker:
-  workerJobTimeout: 10s
+  processMessageTimeout: 10s
   workerJobInterval: 1s
 

@@ -21,8 +21,8 @@ func TestConfig_New(t *testing.T) {
 			configEnv:  "dev",
 			want: &Config{
 				Worker: WorkerConfig{
-					WorkerJobTimeout:  10 * time.Second,
-					WorkerJobInterval: 1 * time.Second,
+					WorkerJobInterval:     1 * time.Second,
+					ProcessMessageTimeout: 5 * time.Second,
 				},
 			},
 			wantErr: false,
