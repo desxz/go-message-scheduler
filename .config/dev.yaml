@@ -1,0 +1,4 @@
+worker:
+  workerJobTimeout: 10s
+  workerJobInterval: 1s
+
