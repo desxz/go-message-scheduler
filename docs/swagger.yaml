@@ -20,14 +20,14 @@ definitions:
 host: localhost:3000
 info:
   contact:
-    email: your-email@example.com
+    email: muratgun545@gmail.com
     name: API Support
   description: API for scheduling and managing messages
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
   termsOfService: http://swagger.io/terms/
-  title: Message Scheduler API
+  title: Go Message Scheduler API
   version: "1.0"
 paths:
   /sent-messages:

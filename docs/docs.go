@@ -12,11 +12,11 @@ const docTemplate = `{
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
-            "email": "your-email@example.com"
+            "email": "muratgun545@gmail.com"
         },
         "license": {
-            "name": "Apache 2.0",
-            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT"
         },
         "version": "{{.Version}}"
     },
@@ -92,7 +92,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Message Scheduler API",
+	Title:            "Go Message Scheduler API",
 	Description:      "API for scheduling and managing messages",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
