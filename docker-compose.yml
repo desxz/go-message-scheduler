@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: go-message-scheduler
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://admin:password@mongo:27017
+      - MESSAGES_DB_NAME=messages
+      - MESSAGES_COLLECTION_NAME=messages
+      - PORT=3000
+    depends_on:
+      - mongo
+    restart: unless-stopped
+    networks:
+      - go-message-scheduler-network
+
+  mongo:
+    image: mongo:latest
+    container_name: messages-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    restart: unless-stopped
+    networks:
+      - go-message-scheduler-network
+
+volumes:
+  mongo-data:
+    name: messages-mongodb-data
+
+networks:
+  go-message-scheduler-network:
+    name: go-message-scheduler-network
