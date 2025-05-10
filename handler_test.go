@@ -12,8 +12,9 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-func Test_RetriveSentMessages(t *testing.T) {
+func TestHandler_RetrieveSentMessages(t *testing.T) {
 	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 	app := fiber.New()
 	mockService := NewMockMessageService(ctrl)
 	handler := NewMessageHandler(mockService)
