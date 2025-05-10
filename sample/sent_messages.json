@@ -1,6 +1,6 @@
 [
   {
-    "_id": "645f6e1a8b45c23d9812ab19",
+    "id": "645f6e1a8b45c23d9812ab19",
     "webhook_response_message_id": "msg_123456789abcdef",
     "content": "Hello! This is a test message.",
     "recipient_phone_number": "+15551234567",
@@ -9,7 +9,7 @@
     "sent_at": "2025-05-09T14:30:15Z"
   },
   {
-    "_id": "645f6e1a8b45c23d9812ab1a",
+    "id": "645f6e1a8b45c23d9812ab1a",
     "webhook_response_message_id": "msg_abcdef123456789",
     "content": "Your appointment is scheduled for tomorrow at 2 PM.",
     "recipient_phone_number": "+15559876543",
@@ -18,7 +18,7 @@
     "sent_at": "2025-05-10T09:16:00Z"
   },
   {
-    "_id": "645f6e1a8b45c23d9812ab1b",
+    "id": "645f6e1a8b45c23d9812ab1b",
     "webhook_response_message_id": "msg_987654321fedcba",
     "content": "Thank you for your recent purchase! Your order will be delivered within 3-5 business days.",
     "recipient_phone_number": "+15552468013",
@@ -27,7 +27,7 @@
     "sent_at": "2025-05-08T11:45:30Z"
   },
   {
-    "_id": "645f6e1a8b45c23d9812ab1c",
+    "id": "645f6e1a8b45c23d9812ab1c",
     "webhook_response_message_id": "msg_567890abcdef123",
     "content": "Your verification code is: 729384",
     "recipient_phone_number": "+15553579024",
@@ -36,7 +36,7 @@
     "sent_at": "2025-05-10T08:20:10Z"
   },
   {
-    "_id": "645f6e1a8b45c23d9812ab1d",
+    "id": "645f6e1a8b45c23d9812ab1d",
     "webhook_response_message_id": "msg_fedcba987654321",
     "content": "Don't forget about our upcoming event this weekend!",
     "recipient_phone_number": "+15551357924",

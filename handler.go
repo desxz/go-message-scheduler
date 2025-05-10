@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,7 +13,7 @@ type MessageService interface {
 }
 
 type Message struct {
-	ID                       primitive.ObjectID `bson:"_id,omitempty"`
+	ID                       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	WebhookResponseMessageID string             `bson:"webhook_response_message_id" json:"webhook_response_message_id"`
 	Content                  string             `bson:"content" json:"content"`
 	RecipientPhoneNumber     string             `bson:"recipient_phone_number" json:"recipient_phone_number"`
@@ -38,11 +39,10 @@ func (h *MessageHandler) RegisterRoutes(app *fiber.App) {
 func (h *MessageHandler) RetriveSentMessages(c *fiber.Ctx) error {
 	sentMessages, err := h.messageService.RetriveSentMessages()
 	if err != nil {
+		if errors.Is(err, ErrDocumentNotFound) {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
 		return c.SendStatus(fiber.StatusInternalServerError)
-	}
-
-	if len(sentMessages) == 0 {
-		return c.SendStatus(fiber.StatusNotFound)
 	}
 
 	return c.JSON(sentMessages)

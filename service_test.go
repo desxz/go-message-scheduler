@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/mongo-driver/mongo"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -49,7 +48,7 @@ func TestService_RetrieveSentMessages(t *testing.T) {
 			wantData: nil,
 			wantErr:  ErrDocumentNotFound,
 			beforeSuite: func() {
-				mockRepo.EXPECT().RetrieveSentMessages().Return(nil, mongo.ErrNoDocuments)
+				mockRepo.EXPECT().RetrieveSentMessages().Return([]Message{}, nil)
 			},
 		},
 		{

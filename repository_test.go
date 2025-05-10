@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -63,9 +65,9 @@ func TestRepository_RetrieveSendMessage(t *testing.T) {
 		return
 	}
 
-	var sampleMixedMessages []Message
+	sampleMixedMessages := make([]Message, 5)
 	if err := json.Unmarshal(sampleMixedMessageContentRawByte, &sampleMixedMessages); err != nil {
-		assert.Fail(t, "Failed to unmarshal sample mixed messages")
+		assert.Fail(t, "Failed to unmarshal sample mixed messages, got error: %v", err)
 		return
 	}
 
@@ -76,16 +78,14 @@ func TestRepository_RetrieveSendMessage(t *testing.T) {
 		beforeSuite func() (*mongo.Client, func())
 	}{
 		{
-			name:     "should return retrived sent messages",
-			wantData: []Message{sampleMixedMessages[0], sampleMixedMessages[4]},
+			name:     "should return retrieved sent messages",
+			wantData: []Message{sampleMixedMessages[4], sampleMixedMessages[0]}, // from newest to oldest sent_at
 			wantErr:  nil,
 			beforeSuite: func() (*mongo.Client, func()) {
 				client, cleanFunc, err := prepareTestMongoStore()
 				assert.NoError(t, err)
 
-				defer client.Disconnect(context.Background())
-
-				bsonMessages := make([]interface{}, len(sampleMixedMessages))
+				var bsonMessages []interface{}
 				for _, message := range sampleMixedMessages {
 					bsonMessages = append(bsonMessages, message)
 				}
@@ -100,15 +100,9 @@ func TestRepository_RetrieveSendMessage(t *testing.T) {
 		{
 			name:     "should return error when messages are not found",
 			wantData: nil,
-			wantErr:  mongo.ErrNoDocuments,
+			wantErr:  nil,
 			beforeSuite: func() (*mongo.Client, func()) {
 				client, cleanFunc, err := prepareTestMongoStore()
-				assert.NoError(t, err)
-
-				defer client.Disconnect(context.Background())
-
-				messageCollection := client.Database(testDB).Collection(testCollection)
-				_, err = messageCollection.DeleteMany(context.Background(), nil)
 				assert.NoError(t, err)
 
 				return client, cleanFunc
@@ -122,18 +116,32 @@ func TestRepository_RetrieveSendMessage(t *testing.T) {
 				client, cleanFunc, err := prepareTestMongoStore()
 				assert.NoError(t, err)
 
-				defer client.Disconnect(context.Background())
+				oid, _ := primitive.ObjectIDFromHex("645f6e1a8b45c23d9812ab20")
 
-				bsonMessages := make([]interface{}, len(sampleMixedMessages))
-				for _, message := range sampleMixedMessages {
-					bsonMessages = append(bsonMessages, message)
+				// Create an invalid document that will cause cursor.All to fail
+				invalidDoc := bson.M{
+					"_id":                         oid,
+					"webhook_response_message_id": "msg_123456789abcdef",
+					"content":                     "Hello! This is a test message.",
+					"recipient_phone_number":      "+15551234567",
+					"status":                      StatusSent,
+					"created_at":                  "not-a-valid-time-format",
+					"sent_at":                     "2025-05-09T14:30:15Z",
 				}
 
-				// broke the data
-				bsonMessages[0].(map[string]interface{})["status"] = 1
-
+				// Insert multiple documents, one valid and one invalid to ensure the Find works but All fails
 				messageCollection := client.Database(testDB).Collection(testCollection)
-				_, err = messageCollection.InsertMany(context.Background(), bsonMessages)
+
+				// Insert valid messages first
+				var docs []interface{}
+				for _, msg := range sampleMixedMessages {
+					docs = append(docs, msg)
+				}
+
+				// Insert the invalid document
+				docs = append(docs, invalidDoc)
+
+				_, err = messageCollection.InsertMany(context.Background(), docs)
 				assert.NoError(t, err)
 
 				return client, cleanFunc
@@ -145,9 +153,10 @@ func TestRepository_RetrieveSendMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client, cleanFunc := tt.beforeSuite()
 
+			defer client.Disconnect(context.Background())
 			defer cleanFunc()
 
-			messageRepository := NewMessageRepositoryImpl(client.Database("test").Collection("messages"))
+			messageRepository := NewMessageRepositoryImpl(client.Database(testDB).Collection(testCollection))
 			gotData, err := messageRepository.RetrieveSentMessages()
 			assert.Equal(t, tt.wantErr, err)
 			assert.Equal(t, tt.wantData, gotData)

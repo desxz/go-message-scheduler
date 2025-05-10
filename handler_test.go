@@ -57,12 +57,12 @@ func TestHandler_RetrieveSentMessages(t *testing.T) {
 			},
 		},
 		{
-			name:       "should return error when messages are not found",
+			name:       "should return error when error is ErrDocumentNotFound",
 			url:        sentMessagesPath,
 			wantStatus: fiber.StatusNotFound,
 			wantBody:   `Not Found`,
 			beforeSuite: func() {
-				mockService.EXPECT().RetriveSentMessages().Return(nil, nil)
+				mockService.EXPECT().RetriveSentMessages().Return(nil, ErrDocumentNotFound)
 			},
 		},
 		{

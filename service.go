@@ -2,8 +2,6 @@ package main
 
 import (
 	"errors"
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var (
@@ -28,10 +26,11 @@ func NewMessageServiceImpl(mr MessageRepository) *MessageServiceImpl {
 func (ms *MessageServiceImpl) RetrieveSentMessages() ([]Message, error) {
 	sentMessages, err := ms.messageRepository.RetrieveSentMessages()
 	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, ErrDocumentNotFound
-		}
 		return nil, ErrInternalServerError
+	}
+
+	if len(sentMessages) == 0 {
+		return nil, ErrDocumentNotFound
 	}
 
 	return sentMessages, nil
