@@ -8,3 +8,8 @@ unit-test:
 	@echo "Running unit tests..."
 	@go test -v ./... | tee result.log
 	@echo "Done."
+
+run:
+	@echo "Running the application..."
+	@docker compose up -d --build
+	@echo "Done."
