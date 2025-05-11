@@ -14,3 +14,12 @@ tests:
 run:
 	@echo "Running the application..."
 	@docker compose up -d --build
+
+run-with-seed:
+	@echo "Setting MongoDB seed to true..."
+	@sed -i '' 's/seed: false/seed: true/' .config/dev.yaml
+	@echo "Running the application with seeding..."
+	@docker compose up -d --build
+	@echo "Resetting MongoDB seed to false..."
+	@sed -i '' 's/seed: true/seed: false/' .config/dev.yaml
+	@echo "Done."

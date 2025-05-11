@@ -18,6 +18,7 @@ WORKDIR /root/
 
 COPY --from=builder /app/go-message-scheduler .
 COPY --from=builder /app/.config ./.config
+COPY --from=builder /app/sample ./sample
 
 EXPOSE 3000
 

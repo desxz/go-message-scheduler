@@ -1,5 +1,7 @@
 worker:
   workerJobInterval: 5s
+mongoDB:
+  seed: false
 webhookClient:
   timeout: 30s
   path: /a4d12c37-21b5-4470-92ad-357329f2b48c

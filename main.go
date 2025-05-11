@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"os/signal"
@@ -64,6 +65,13 @@ func main() {
 	config, err := NewConfig(os.Getenv("CONFIG_PATH"), os.Getenv("CONFIG_ENV"))
 	if err != nil {
 		logger.Fatal("Failed to load config", zap.Error(err))
+	}
+
+	if config.MongoDB.Seed {
+		if err := seedMongoDB(ctx, messagesMongoClient); err != nil {
+			logger.Fatal("Failed to seed MongoDB", zap.Error(err))
+		}
+		logger.Info("MongoDB seeded")
 	}
 
 	messagesCollection := messagesMongoClient.Database(os.Getenv("MESSAGES_DB_NAME")).Collection(os.Getenv("MESSAGES_COLLECTION_NAME"))
@@ -141,4 +149,25 @@ func main() {
 
 	logger.Info("Graceful shutdown completed")
 
+}
+
+func seedMongoDB(ctx context.Context, client *mongo.Client) error {
+	jsonFile, err := os.Open("sample/seed.json")
+	if err != nil {
+
+		return err
+	}
+	defer jsonFile.Close()
+
+	var seedData []interface{}
+	if err := json.NewDecoder(jsonFile).Decode(&seedData); err != nil {
+		return err
+	}
+
+	collection := client.Database(os.Getenv("MESSAGES_DB_NAME")).Collection(os.Getenv("MESSAGES_COLLECTION_NAME"))
+	if _, err := collection.InsertMany(ctx, seedData); err != nil {
+		return err
+	}
+
+	return nil
 }

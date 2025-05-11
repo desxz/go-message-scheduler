@@ -59,6 +59,7 @@ go-message-scheduler/
 - Docker and Docker Compose
 - Go 1.24+ (for development)
 - Make
+- sed (for running with seed)
 
 ### Running with Docker Compose
 
@@ -69,6 +70,14 @@ make run
 ```
 
 This command builds and starts the application along with MongoDB and Redis services using Docker Compose.
+
+If you want to run application with seed data, you can use:
+
+```
+make run-with-seed
+```
+
+This command will run the application with sample/seed.json data for testing purposes.
 
 ### Development
 

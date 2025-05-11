@@ -11,6 +11,7 @@ type Config struct {
 	Cache         CacheConfig
 	Pool          PoolConfig
 	RateLimiter   RateLimiterConfig
+	MongoDB       MongoDBConfig
 }
 
 func NewConfig(configPath, configEnv string) (*Config, error) {

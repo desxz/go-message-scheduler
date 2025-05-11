@@ -42,6 +42,9 @@ func TestConfig_New(t *testing.T) {
 					RefillRate:     2,
 					RefillInterval: 2 * time.Minute,
 				},
+				MongoDB: MongoDBConfig{
+					Seed: false,
+				},
 			},
 			wantErr: false,
 		},

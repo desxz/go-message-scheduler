@@ -11,6 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type MongoDBConfig struct {
+	Seed bool `mapstructure:"seed"`
+}
+
 const (
 	StatusSent           = "sent"
 	StatusUnsent         = "unsent"
