@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/desxz/go-message-scheduler/client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,8 +22,21 @@ func TestConfig_New(t *testing.T) {
 			configEnv:  "dev",
 			want: &Config{
 				Worker: WorkerConfig{
-					WorkerJobInterval:     1 * time.Second,
-					ProcessMessageTimeout: 5 * time.Second,
+					WorkerJobInterval:     5 * time.Second,
+					ProcessMessageTimeout: 10 * time.Second,
+				},
+				WebhookClient: client.WebhookClientConfig{
+					Timeout: 30 * time.Second,
+					Path:    "/a4d12c37-21b5-4470-92ad-357329f2b48c",
+					Host:    "https://webhook.site",
+				},
+				Cache: CacheConfig{
+					TTL: 24 * time.Hour,
+				},
+				Pool: PoolConfig{
+					NumWorkers:      2,
+					Timeout:         10 * time.Second,
+					InitialJobFetch: true,
 				},
 			},
 			wantErr: false,

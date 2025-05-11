@@ -20,6 +20,10 @@ func TestWorker_ProcessMessage(t *testing.T) {
 	mockRepo := NewMockWorkerMessageStore(ctrl)
 	mockWebhookClient := NewMockWebhookClient(ctrl)
 	mockCache := NewMockWorkerMessageCache(ctrl)
+	config := WorkerConfig{
+		ProcessMessageTimeout: 1 * time.Second,
+		WorkerJobInterval:     1 * time.Second,
+	}
 
 	tests := []struct {
 		name        string
@@ -99,7 +103,7 @@ func TestWorker_ProcessMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.beforeSuite()
-			worker := NewWorkerInstance(tt.messageID, mockRepo, mockWebhookClient, mockCache, zap.NewNop())
+			worker := NewWorkerInstance(tt.messageID, mockRepo, mockWebhookClient, mockCache, config, zap.NewNop())
 			process, err := worker.ProcessMessage(context.Background())
 			assert.Equal(t, tt.wantErr, err != nil)
 			assert.Equal(t, tt.wantProcess, process)

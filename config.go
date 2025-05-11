@@ -1,9 +1,15 @@
 package main
 
-import "github.com/spf13/viper"
+import (
+	"github.com/desxz/go-message-scheduler/client"
+	"github.com/spf13/viper"
+)
 
 type Config struct {
-	Worker WorkerConfig
+	Worker        WorkerConfig
+	WebhookClient client.WebhookClientConfig
+	Cache         CacheConfig
+	Pool          PoolConfig
 }
 
 func NewConfig(configPath, configEnv string) (*Config, error) {

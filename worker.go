@@ -35,21 +35,22 @@ type WorkerInstance struct {
 	workerMessageStore WorkerMessageStore
 	webhookClient      WebhookClient
 	workerMessageCache WorkerMessageCache
-	config             Config
+	config             WorkerConfig
 	logger             *zap.Logger
 }
 
-func NewWorkerInstance(id string, workerMessageStore WorkerMessageStore, webhookClient WebhookClient, workerMessageCache WorkerMessageCache, logger *zap.Logger) *WorkerInstance {
+func NewWorkerInstance(id string, workerMessageStore WorkerMessageStore, webhookClient WebhookClient, workerMessageCache WorkerMessageCache, config WorkerConfig, logger *zap.Logger) *WorkerInstance {
 	return &WorkerInstance{
 		ID:                 id,
 		workerMessageStore: workerMessageStore,
 		workerMessageCache: workerMessageCache,
 		webhookClient:      webhookClient,
+		config:             config,
 		logger:             logger.With(zap.String("component", "worker"), zap.String("worker_id", id)),
 	}
 }
 
-func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup) {
+func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup, canFetchNewJob func() bool) {
 	defer wg.Done()
 
 	w.logger.Info("Worker started")
@@ -60,24 +61,33 @@ func (w *WorkerInstance) Start(ctx context.Context, wg *sync.WaitGroup) {
 			w.logger.Info("Worker received shutdown signal, stopping gracefully")
 			return
 		default:
-			processed, err := w.ProcessMessage(ctx)
-			if err != nil {
-				w.logger.Error("Error processing message", zap.Error(err))
-			}
+		}
 
-			if !processed && err == nil {
-				// no messg to process, sleep for a while
-				time.Sleep(w.config.Worker.WorkerJobInterval)
+		if !canFetchNewJob() {
+			w.logger.Debug("WorkerPool tarafından yeni iş alımı duraklatıldı, bekleniyor...")
+			select {
+			case <-ctx.Done():
+				w.logger.Info("Worker (duraklatılmışken) context iptali nedeniyle durduruluyor.")
+				return
+			case <-time.After(w.config.WorkerJobInterval):
+				continue
 			}
+		}
+
+		processed, err := w.ProcessMessage(ctx)
+		if err != nil {
+			w.logger.Error("Error processing message", zap.Error(err))
+		}
+
+		if !processed && err == nil {
+			w.logger.Info("Worker: No messages to process, sleeping", zap.Duration("interval", w.config.WorkerJobInterval))
+			time.Sleep(w.config.WorkerJobInterval)
 		}
 	}
 }
 
 func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
-	opCtx, cancel := context.WithTimeout(ctx, w.config.Worker.ProcessMessageTimeout)
-	defer cancel()
-
-	message, err := w.workerMessageStore.FetchAndMarkProcessing(opCtx)
+	message, err := w.workerMessageStore.FetchAndMarkProcessing(ctx)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
@@ -87,7 +97,7 @@ func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
 
 	w.logger.Info("Processing message", zap.String("message_id", message.ID.Hex()))
 
-	res, err := w.webhookClient.PostMessage(opCtx, &client.WebhookRequest{
+	res, err := w.webhookClient.PostMessage(ctx, &client.WebhookRequest{
 		To:      message.RecipientPhoneNumber,
 		Content: message.Content,
 	})
@@ -95,7 +105,7 @@ func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
 		w.logger.Error("Failed to send message to webhook",
 			zap.String("message_id", message.ID.Hex()),
 			zap.Error(err))
-		if err := w.workerMessageStore.MarkAsFailed(opCtx, message.ID); err != nil {
+		if err := w.workerMessageStore.MarkAsFailed(ctx, message.ID); err != nil {
 			w.logger.Error("Failed to mark message as failed",
 				zap.String("message_id", message.ID.Hex()),
 				zap.Error(err))
@@ -106,14 +116,14 @@ func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
 	}
 
 	now := time.Now()
-	if err := w.workerMessageStore.MarkAsSent(opCtx, message.ID, res.MessageID); err != nil {
+	if err := w.workerMessageStore.MarkAsSent(ctx, message.ID, res.MessageID); err != nil {
 		w.logger.Error("Failed to mark message as sent",
 			zap.String("message_id", message.ID.Hex()),
 			zap.Error(err))
 		return true, err
 	}
 
-	if err := w.workerMessageCache.Set(opCtx, res.MessageID, now.Format(time.RFC3339)); err != nil {
+	if err := w.workerMessageCache.Set(ctx, res.MessageID, now.Format(time.RFC3339)); err != nil {
 		w.logger.Error("Failed to cache message ID",
 			zap.String("message_id", message.ID.Hex()),
 			zap.Error(err))

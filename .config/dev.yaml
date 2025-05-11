@@ -1,4 +1,13 @@
 worker:
   processMessageTimeout: 10s
-  workerJobInterval: 1s
-
+  workerJobInterval: 5s
+webhookClient:
+  timeout: 30s
+  path: /a4d12c37-21b5-4470-92ad-357329f2b48c
+  host: https://webhook.site
+cache:
+  ttl: 24h
+pool:
+  numWorkers: 2
+  timeout: 10s
+  initialJobFetch: true

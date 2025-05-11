@@ -11,8 +11,14 @@ services:
       - MESSAGES_DB_NAME=messages
       - MESSAGES_COLLECTION_NAME=messages
       - PORT=3000
+      - REDIS_URI=redis:6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+      - CONFIG_PATH=.config
+      - CONFIG_ENV=dev
     depends_on:
       - mongo
+      - redis
     restart: unless-stopped
     networks:
       - go-message-scheduler-network
@@ -30,10 +36,23 @@ services:
     restart: unless-stopped
     networks:
       - go-message-scheduler-network
+      
+  redis:
+    image: redis:7-alpine
+    container_name: messages-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - go-message-scheduler-network
 
 volumes:
   mongo-data:
     name: messages-mongodb-data
+  redis-data:
+    name: messages-redis-data
 
 networks:
   go-message-scheduler-network:
