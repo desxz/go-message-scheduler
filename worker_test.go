@@ -19,6 +19,7 @@ func TestWorker_ProcessMessage(t *testing.T) {
 
 	mockRepo := NewMockWorkerMessageStore(ctrl)
 	mockWebhookClient := NewMockWebhookClient(ctrl)
+	mockCache := NewMockWorkerMessageCache(ctrl)
 
 	tests := []struct {
 		name        string
@@ -54,6 +55,8 @@ func TestWorker_ProcessMessage(t *testing.T) {
 				}, nil)
 
 				mockRepo.EXPECT().MarkAsSent(gomock.Any(), message.ID, "webhook-message-id").Return(nil)
+
+				mockCache.EXPECT().Set(gomock.Any(), "webhook-message-id", gomock.Any()).Return(nil)
 			},
 		},
 		{
@@ -96,7 +99,7 @@ func TestWorker_ProcessMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.beforeSuite()
-			worker := NewWorkerInstance(tt.messageID, mockRepo, mockWebhookClient, zap.NewNop())
+			worker := NewWorkerInstance(tt.messageID, mockRepo, mockWebhookClient, mockCache, zap.NewNop())
 			process, err := worker.ProcessMessage(context.Background())
 			assert.Equal(t, tt.wantErr, err != nil)
 			assert.Equal(t, tt.wantProcess, process)

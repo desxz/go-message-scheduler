@@ -85,6 +85,44 @@ func (mr *MockWorkerMessageStoreMockRecorder) MarkAsSent(ctx, messageID, webhook
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsSent", reflect.TypeOf((*MockWorkerMessageStore)(nil).MarkAsSent), ctx, messageID, webhookMessageID)
 }
 
+// MockWorkerMessageCache is a mock of WorkerMessageCache interface.
+type MockWorkerMessageCache struct {
+	ctrl     *gomock.Controller
+	recorder *MockWorkerMessageCacheMockRecorder
+	isgomock struct{}
+}
+
+// MockWorkerMessageCacheMockRecorder is the mock recorder for MockWorkerMessageCache.
+type MockWorkerMessageCacheMockRecorder struct {
+	mock *MockWorkerMessageCache
+}
+
+// NewMockWorkerMessageCache creates a new mock instance.
+func NewMockWorkerMessageCache(ctrl *gomock.Controller) *MockWorkerMessageCache {
+	mock := &MockWorkerMessageCache{ctrl: ctrl}
+	mock.recorder = &MockWorkerMessageCacheMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWorkerMessageCache) EXPECT() *MockWorkerMessageCacheMockRecorder {
+	return m.recorder
+}
+
+// Set mocks base method.
+func (m *MockWorkerMessageCache) Set(ctx context.Context, key, value string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", ctx, key, value)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set.
+func (mr *MockWorkerMessageCacheMockRecorder) Set(ctx, key, value any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockWorkerMessageCache)(nil).Set), ctx, key, value)
+}
+
 // MockWebhookClient is a mock of WebhookClient interface.
 type MockWebhookClient struct {
 	ctrl     *gomock.Controller
