@@ -6,8 +6,8 @@ generate-mocks:
 	@mockgen --source=worker_handler.go --destination=worker_handler_mock.go --package=main
 	@echo "Done."
 
-unit-test:
-	@echo "Running unit tests..."
+tests:
+	@echo "Running tests..."
 	@go test -v ./... | tee result.log
 	@echo "Done."
 
