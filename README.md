@@ -4,7 +4,9 @@ A message scheduling service built in Go that allows for managing and sending me
 
 ## Overview
 
-Go Message Scheduler is an API service that manages message scheduling and delivery. It provides endpoints for retrieving sent messages and controlling a worker pool that processes the message queue.
+Go Message Scheduler is an API service that manages message scheduling and delivery. It provides endpoints for retrieving sent messages and controlling a worker pool that processes the message queue. Workerpool has a pause/resume feature, allowing for controlled processing of messages. The service uses MongoDB for message persistence and Redis for caching.
+
+The service is designed to be extensible and can be integrated with various external services via webhooks. It also includes rate limiting to control the number of API requests. Rate limiting is implemented using a token bucket algorithm, which allows for bursty traffic while maintaining an average rate. Rate limiting and worker configuration are managed through a `.config/dev.yaml` file.
 
 ## Features
 
@@ -97,6 +99,9 @@ REDIS_DB=0
 CONFIG_PATH=.config
 CONFIG_ENV=dev
 ```
+
+## Configuration
+The application uses a configuration file to manage settings. The configuration is loaded from a `.config` file in the root directory. The configuration file contains settings for MongoDB, Redis, and other application parameters.
 
 ## Webhook Integration
 
