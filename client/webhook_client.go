@@ -6,11 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type WebhookClientConfig struct {
-	Timeout int    `json:"timeout"`
-	Path    string `json:"path"`
+	Timeout time.Duration `json:"timeout"`
+	Path    string        `json:"path"`
+	Host    string        `json:"host"`
 }
 
 type WebhookResponse struct {
