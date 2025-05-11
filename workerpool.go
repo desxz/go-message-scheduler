@@ -104,7 +104,7 @@ func (p *WorkerPoolImpl) Start() {
 			return p.rateLimiter.Allow()
 		}
 
-		go instance.Start(context.Background(), p.wg, canProcessFunc)
+		go instance.Start(p.poolCtx, p.wg, canProcessFunc)
 	}
 }
 
@@ -142,7 +142,6 @@ func (p *WorkerPoolImpl) GetStatus() string {
 func (p *WorkerPoolImpl) Shutdown(timeoutCtx context.Context) error {
 	p.PauseFetching()
 
-	// Stop the rate limiter
 	if p.rateLimiter != nil {
 		p.logger.Info("Stopping rate limiter")
 		p.rateLimiter.Stop()
@@ -160,6 +159,6 @@ func (p *WorkerPoolImpl) Shutdown(timeoutCtx context.Context) error {
 	case <-done:
 		return nil
 	case <-timeoutCtx.Done():
-		return timeoutCtx.Err()
+		return fmt.Errorf("timeout while waiting for workers to finish")
 	}
 }

@@ -32,3 +32,7 @@ func NewRedisCache(addr, password string, db int, config CacheConfig) *RedisCach
 func (c *RedisCache) Set(ctx context.Context, key string, value string) error {
 	return c.client.Set(ctx, key, value, c.config.TTL).Err()
 }
+
+func (c *RedisCache) Close() error {
+	return c.client.Close()
+}
