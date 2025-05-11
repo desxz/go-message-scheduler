@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/desxz/go-message-scheduler/client"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ import (
 type WorkerMessageStore interface {
 	FetchAndMarkProcessing(ctx context.Context) (*Message, error)
 	MarkAsSent(ctx context.Context, messageID primitive.ObjectID, webhookMessageID string) error
-	MarkAsFailed(ctx context.Context, messageID primitive.ObjectID) error
+	MarkAsFailed(ctx context.Context, messageID primitive.ObjectID, reason string) error
 }
 
 type WorkerMessageCache interface {
@@ -36,16 +37,18 @@ type WorkerInstance struct {
 	webhookClient      WebhookClient
 	workerMessageCache WorkerMessageCache
 	config             WorkerConfig
+	validate           *validator.Validate
 	logger             *zap.Logger
 }
 
-func NewWorkerInstance(id string, workerMessageStore WorkerMessageStore, webhookClient WebhookClient, workerMessageCache WorkerMessageCache, config WorkerConfig, logger *zap.Logger) *WorkerInstance {
+func NewWorkerInstance(id string, workerMessageStore WorkerMessageStore, webhookClient WebhookClient, workerMessageCache WorkerMessageCache, config WorkerConfig, logger *zap.Logger, validate *validator.Validate) *WorkerInstance {
 	return &WorkerInstance{
 		ID:                 id,
 		workerMessageStore: workerMessageStore,
 		workerMessageCache: workerMessageCache,
 		webhookClient:      webhookClient,
 		config:             config,
+		validate:           validate,
 		logger:             logger.With(zap.String("component", "worker"), zap.String("worker_id", id)),
 	}
 }
@@ -97,6 +100,17 @@ func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
 
 	w.logger.Info("Processing message", zap.String("message_id", message.ID.Hex()))
 
+	if err := w.validate.Struct(message); err != nil {
+		w.logger.Error("Invalid message struct", zap.String("message_id", message.ID.Hex()), zap.Error(err))
+		if err := w.workerMessageStore.MarkAsFailed(ctx, message.ID, "invalid message struct: "+err.Error()); err != nil {
+			w.logger.Error("Failed to mark message as failed",
+				zap.String("message_id", message.ID.Hex()),
+				zap.Error(err))
+			return true, err
+		}
+		return true, err
+	}
+
 	res, err := w.webhookClient.PostMessage(ctx, &client.WebhookRequest{
 		To:      message.RecipientPhoneNumber,
 		Content: message.Content,
@@ -105,7 +119,7 @@ func (w *WorkerInstance) ProcessMessage(ctx context.Context) (bool, error) {
 		w.logger.Error("Failed to send message to webhook",
 			zap.String("message_id", message.ID.Hex()),
 			zap.Error(err))
-		if err := w.workerMessageStore.MarkAsFailed(ctx, message.ID); err != nil {
+		if err := w.workerMessageStore.MarkAsFailed(ctx, message.ID, "failed to send webhook: "+err.Error()); err != nil {
 			w.logger.Error("Failed to mark message as failed",
 				zap.String("message_id", message.ID.Hex()),
 				zap.Error(err))

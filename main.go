@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -76,8 +77,10 @@ func main() {
 
 	messageCache := NewRedisCache(os.Getenv("REDIS_URI"), os.Getenv("REDIS_PASSWORD"), redisDB, config.Cache)
 
+	validate := validator.New()
+
 	poolWg := &sync.WaitGroup{}
-	pool := NewWorkerPool(config.Pool.NumWorkers, messagesRepository, webhookClient, messageCache, *config, logger, poolWg, config.Pool.InitialJobFetch)
+	pool := NewWorkerPool(config.Pool.NumWorkers, messagesRepository, webhookClient, messageCache, *config, logger, poolWg, config.Pool.InitialJobFetch, validate)
 	pool.Start()
 	defer pool.Shutdown(poolCtx)
 

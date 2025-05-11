@@ -485,7 +485,7 @@ func TestRepository_MarkAsFailed(t *testing.T) {
 			defer cleanFunc()
 
 			messageRepository := NewMessageRepositoryImpl(client.Database(testDB).Collection(testCollection))
-			err := messageRepository.MarkAsFailed(context.Background(), tt.markID)
+			err := messageRepository.MarkAsFailed(context.Background(), tt.markID, "failed")
 			assert.Equal(t, tt.wantErr, err != nil)
 
 			if !tt.wantErr {

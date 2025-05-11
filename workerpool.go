@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 )
@@ -35,6 +36,7 @@ type WorkerPoolImpl struct {
 	webhookClient      WebhookClient
 	workerMessageCache WorkerMessageCache
 	appConfig          Config
+	validate           *validator.Validate
 }
 
 func NewWorkerPool(
@@ -46,6 +48,7 @@ func NewWorkerPool(
 	logger *zap.Logger,
 	wg *sync.WaitGroup,
 	canFetchNewJobsInitial bool,
+	validate *validator.Validate,
 ) *WorkerPoolImpl {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &WorkerPoolImpl{
@@ -59,6 +62,7 @@ func NewWorkerPool(
 		appConfig:          cfg,
 		canFetchNewJobs:    canFetchNewJobsInitial,
 		wg:                 wg,
+		validate:           validate,
 	}
 }
 
@@ -78,6 +82,7 @@ func (p *WorkerPoolImpl) Start() {
 			p.workerMessageCache,
 			p.appConfig.Worker,
 			p.logger,
+			p.validate,
 		)
 
 		canFetchFunc := func() bool {

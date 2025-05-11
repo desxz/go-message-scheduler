@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	StatusSent       = "sent"
-	StatusUnsent     = "unsent"
-	StatusProcessing = "processing"
-	StatusFailed     = "failed"
+	StatusSent           = "sent"
+	StatusUnsent         = "unsent"
+	StatusProcessing     = "processing"
+	StatusFailed         = "failed"
+	StatusInvalidContent = "invalid_content"
 )
 
 var (
@@ -91,7 +92,7 @@ func (mr *MessageRepositoryImpl) MarkAsSent(ctx context.Context, messageID primi
 	return nil
 }
 
-func (mr *MessageRepositoryImpl) MarkAsFailed(ctx context.Context, messageID primitive.ObjectID) error {
+func (mr *MessageRepositoryImpl) MarkAsFailed(ctx context.Context, messageID primitive.ObjectID, errmsg string) error {
 	filter := bson.M{
 		"_id": messageID,
 	}
@@ -99,6 +100,7 @@ func (mr *MessageRepositoryImpl) MarkAsFailed(ctx context.Context, messageID pri
 	update := bson.M{
 		"$set": bson.M{
 			"status": StatusFailed,
+			"err":    errmsg,
 		},
 	}
 

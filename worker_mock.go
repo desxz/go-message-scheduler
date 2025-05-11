@@ -58,17 +58,17 @@ func (mr *MockWorkerMessageStoreMockRecorder) FetchAndMarkProcessing(ctx any) *g
 }
 
 // MarkAsFailed mocks base method.
-func (m *MockWorkerMessageStore) MarkAsFailed(ctx context.Context, messageID primitive.ObjectID) error {
+func (m *MockWorkerMessageStore) MarkAsFailed(ctx context.Context, messageID primitive.ObjectID, reason string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MarkAsFailed", ctx, messageID)
+	ret := m.ctrl.Call(m, "MarkAsFailed", ctx, messageID, reason)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // MarkAsFailed indicates an expected call of MarkAsFailed.
-func (mr *MockWorkerMessageStoreMockRecorder) MarkAsFailed(ctx, messageID any) *gomock.Call {
+func (mr *MockWorkerMessageStoreMockRecorder) MarkAsFailed(ctx, messageID, reason any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsFailed", reflect.TypeOf((*MockWorkerMessageStore)(nil).MarkAsFailed), ctx, messageID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsFailed", reflect.TypeOf((*MockWorkerMessageStore)(nil).MarkAsFailed), ctx, messageID, reason)
 }
 
 // MarkAsSent mocks base method.
