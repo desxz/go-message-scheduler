@@ -17,6 +17,17 @@ definitions:
       webhook_response_message_id:
         type: string
     type: object
+  main.WorkerPoolActionRequest:
+    properties:
+      action:
+        description: '"start" or "pause"'
+        type: string
+    type: object
+  main.WorkerPoolStatusResponse:
+    properties:
+      status:
+        type: string
+    type: object
 host: localhost:3000
 info:
   contact:
@@ -51,4 +62,32 @@ paths:
       summary: Retrieve all sent messages
       tags:
       - messages
+  /worker-pool/state:
+    put:
+      consumes:
+      - application/json
+      description: Start or pause the worker pool
+      parameters:
+      - description: Action to perform
+        in: body
+        name: action
+        required: true
+        schema:
+          $ref: '#/definitions/main.WorkerPoolActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.WorkerPoolStatusResponse'
+        "400":
+          description: Invalid action
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Updates the worker pool state
+      tags:
+      - worker-pool
 swagger: "2.0"

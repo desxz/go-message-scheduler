@@ -54,6 +54,49 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/worker-pool/state": {
+            "put": {
+                "description": "Start or pause the worker pool",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "worker-pool"
+                ],
+                "summary": "Updates the worker pool state",
+                "parameters": [
+                    {
+                        "description": "Action to perform",
+                        "name": "action",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.WorkerPoolActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.WorkerPoolStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid action",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -79,6 +122,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "webhook_response_message_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.WorkerPoolActionRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "\"start\" or \"pause\"",
+                    "type": "string"
+                }
+            }
+        },
+        "main.WorkerPoolStatusResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
                     "type": "string"
                 }
             }
