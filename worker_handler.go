@@ -39,7 +39,7 @@ func (h *WorkerPoolHandler) RegisterRoutes(app *fiber.App) {
 // @Tags worker-pool
 // @Accept json
 // @Produce json
-// @Param action body WorkerPoolActionRequest true "Action to perform"
+// @Param action body WorkerPoolActionRequest true "Action to perform `start` or `pause`"
 // @Success 200 {object} WorkerPoolStatusResponse
 // @Failure 400 {object} map[string]string "Invalid action"
 // @Router /worker-pool/state [put]

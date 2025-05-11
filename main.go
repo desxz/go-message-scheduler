@@ -87,11 +87,10 @@ func main() {
 	workerPoolHandler.RegisterRoutes(app)
 
 	go func() {
-		if err := app.Listen(os.Getenv("SERVER_PORT")); err != nil {
+		if err := app.Listen(os.Getenv("PORT")); err != nil {
 			logger.Fatal("Failed to start server", zap.Error(err))
 		}
 	}()
 
-	// Wait for shutdown signal
 	<-pool.poolCtx.Done()
 }

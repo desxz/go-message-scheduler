@@ -68,7 +68,7 @@ paths:
       - application/json
       description: Start or pause the worker pool
       parameters:
-      - description: Action to perform
+      - description: Action to perform `start` or `pause`
         in: body
         name: action
         required: true

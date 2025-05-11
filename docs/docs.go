@@ -70,7 +70,7 @@ const docTemplate = `{
                 "summary": "Updates the worker pool state",
                 "parameters": [
                     {
-                        "description": "Action to perform",
+                        "description": "Action to perform ` + "`" + `start` + "`" + ` or ` + "`" + `pause` + "`" + `",
                         "name": "action",
                         "in": "body",
                         "required": true,
