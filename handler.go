@@ -15,7 +15,7 @@ type MessageService interface {
 type Message struct {
 	ID                       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	WebhookResponseMessageID string             `bson:"webhook_response_message_id" json:"webhook_response_message_id"`
-	Content                  string             `bson:"content" json:"content" validate:"max=160"`
+	Content                  string             `bson:"content" json:"content" validate:"max=160,min=1"`
 	RecipientPhoneNumber     string             `bson:"recipient_phone_number" json:"recipient_phone_number"`
 	Status                   string             `bson:"status" json:"status"`
 	CreatedAt                time.Time          `bson:"created_at" json:"created_at"`
