@@ -13,4 +13,3 @@ unit-test:
 run:
 	@echo "Running the application..."
 	@docker compose up -d --build
-	@echo "Done."

@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
+	"strconv"
+	"sync"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
@@ -10,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap"
 
+	"github.com/desxz/go-message-scheduler/client"
 	_ "github.com/desxz/go-message-scheduler/docs"
 )
 
@@ -30,7 +34,6 @@ func main() {
 
 	app := fiber.New()
 
-	// Swagger setup
 	app.Get("/swagger/*", swagger.New(swagger.Config{
 		Title:        "Message Scheduler API",
 		DeepLinking:  false,
@@ -47,6 +50,11 @@ func main() {
 		logger.Fatal("Failed to ping MongoDB", zap.Error(err))
 	}
 
+	config, err := NewConfig(os.Getenv("CONFIG_PATH"), os.Getenv("CONFIG_ENV"))
+	if err != nil {
+		logger.Fatal("Failed to load config", zap.Error(err))
+	}
+
 	messagesCollection := messagesMongoClient.Database(os.Getenv("MESSAGES_DB_NAME")).Collection(os.Getenv("MESSAGES_COLLECTION_NAME"))
 
 	messagesRepository := NewMessageRepositoryImpl(messagesCollection)
@@ -54,7 +62,32 @@ func main() {
 	messageHandler := NewMessageHandler(messageService)
 	messageHandler.RegisterRoutes(app)
 
-	if err := app.Listen(":3000"); err != nil {
-		logger.Fatal("Failed to start server", zap.Error(err))
+	webhookHttpClient := http.Client{
+		Timeout: config.WebhookClient.Timeout,
 	}
+	webhookClient := client.NewWebhookClient(config.WebhookClient.Host, &webhookHttpClient, &config.WebhookClient)
+
+	poolCtx := context.Background()
+
+	redisDB, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+	if err != nil {
+		logger.Fatal("Failed to parse REDIS_DB", zap.Error(err))
+	}
+
+	// Fix the environment variable name to match docker-compose.yml
+	messageCache := NewRedisCache(os.Getenv("REDIS_URI"), os.Getenv("REDIS_PASSWORD"), redisDB, config.Cache)
+
+	poolWg := &sync.WaitGroup{}
+	pool := NewWorkerPool(config.Pool.NumWorkers, messagesRepository, webhookClient, messageCache, *config, logger, poolWg, config.Pool.InitialJobFetch)
+	pool.Start()
+	defer pool.Shutdown(poolCtx)
+
+	go func() {
+		if err := app.Listen(os.Getenv("SERVER_PORT")); err != nil {
+			logger.Fatal("Failed to start server", zap.Error(err))
+		}
+	}()
+
+	// Wait for shutdown signal
+	<-pool.poolCtx.Done()
 }
