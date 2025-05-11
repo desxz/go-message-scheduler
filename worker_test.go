@@ -22,8 +22,7 @@ func TestWorker_ProcessMessage(t *testing.T) {
 	mockWebhookClient := NewMockWebhookClient(ctrl)
 	mockCache := NewMockWorkerMessageCache(ctrl)
 	config := WorkerConfig{
-		ProcessMessageTimeout: 1 * time.Second,
-		WorkerJobInterval:     1 * time.Second,
+		WorkerJobInterval: 1 * time.Second,
 	}
 
 	tests := []struct {

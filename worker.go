@@ -27,8 +27,7 @@ type WebhookClient interface {
 }
 
 type WorkerConfig struct {
-	ProcessMessageTimeout time.Duration `mapstructure:"processMessageTimeout"`
-	WorkerJobInterval     time.Duration `mapstructure:"workerJobInterval"`
+	WorkerJobInterval time.Duration `mapstructure:"workerJobInterval"`
 }
 
 type WorkerInstance struct {

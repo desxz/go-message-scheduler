@@ -22,8 +22,7 @@ func TestConfig_New(t *testing.T) {
 			configEnv:  "dev",
 			want: &Config{
 				Worker: WorkerConfig{
-					WorkerJobInterval:     5 * time.Second,
-					ProcessMessageTimeout: 10 * time.Second,
+					WorkerJobInterval: 5 * time.Second,
 				},
 				WebhookClient: client.WebhookClientConfig{
 					Timeout: 30 * time.Second,

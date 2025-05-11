@@ -1,5 +1,4 @@
 worker:
-  processMessageTimeout: 10s
   workerJobInterval: 5s
 webhookClient:
   timeout: 30s
@@ -15,4 +14,3 @@ rateLimiter:
   maxTokens: 2
   refillRate: 2
   refillInterval: 2m
-  enabled: true
