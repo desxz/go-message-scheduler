@@ -38,6 +38,12 @@ func TestConfig_New(t *testing.T) {
 					Timeout:         10 * time.Second,
 					InitialJobFetch: true,
 				},
+				RateLimiter: RateLimiterConfig{
+					MaxTokens:      2,
+					RefillRate:     2,
+					RefillInterval: 2 * time.Minute,
+					Enabled:        true,
+				},
 			},
 			wantErr: false,
 		},

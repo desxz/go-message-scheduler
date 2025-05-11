@@ -10,6 +10,7 @@ type Config struct {
 	WebhookClient client.WebhookClientConfig
 	Cache         CacheConfig
 	Pool          PoolConfig
+	RateLimiter   RateLimiterConfig
 }
 
 func NewConfig(configPath, configEnv string) (*Config, error) {

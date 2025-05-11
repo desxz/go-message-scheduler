@@ -13,33 +13,40 @@ func TestRateLimiter_Allow(t *testing.T) {
 
 	tests := []struct {
 		name                string
-		maxTokens           int
-		refillRate          int
-		refillInterval      time.Duration
+		config              RateLimiterConfig
 		requests            int
 		expectedAllowedReqs int
 	}{
 		{
-			name:                "allow up to max tokens then block",
-			maxTokens:           5,
-			refillRate:          2,
-			refillInterval:      time.Minute,
+			name: "allow up to max tokens then block",
+			config: RateLimiterConfig{
+				MaxTokens:      5,
+				RefillRate:     2,
+				RefillInterval: time.Minute,
+				Enabled:        true,
+			},
 			requests:            10,
 			expectedAllowedReqs: 5,
 		},
 		{
-			name:                "single token bucket",
-			maxTokens:           1,
-			refillRate:          1,
-			refillInterval:      time.Minute,
+			name: "single token bucket",
+			config: RateLimiterConfig{
+				MaxTokens:      1,
+				RefillRate:     1,
+				RefillInterval: time.Minute,
+				Enabled:        true,
+			},
 			requests:            3,
 			expectedAllowedReqs: 1,
 		},
 		{
-			name:                "zero capacity bucket should block all requests",
-			maxTokens:           0,
-			refillRate:          0,
-			refillInterval:      time.Minute,
+			name: "zero capacity bucket should block all requests",
+			config: RateLimiterConfig{
+				MaxTokens:      0,
+				RefillRate:     0,
+				RefillInterval: time.Minute,
+				Enabled:        true,
+			},
 			requests:            5,
 			expectedAllowedReqs: 0,
 		},
@@ -47,7 +54,7 @@ func TestRateLimiter_Allow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rl := NewRateLimiter(tt.maxTokens, tt.refillRate, tt.refillInterval, logger)
+			rl := NewRateLimiter(tt.config, logger)
 			defer rl.Stop()
 
 			allowed := 0
@@ -67,36 +74,43 @@ func TestRateLimiter_Refill(t *testing.T) {
 
 	tests := []struct {
 		name               string
-		maxTokens          int
-		refillRate         int
-		refillInterval     time.Duration
+		config             RateLimiterConfig
 		initialConsumption int
 		waitRefills        int
 		expectedTokens     int
 	}{
 		{
-			name:               "refill to max capacity",
-			maxTokens:          5,
-			refillRate:         2,
-			refillInterval:     10 * time.Millisecond,
+			name: "refill to max capacity",
+			config: RateLimiterConfig{
+				MaxTokens:      5,
+				RefillRate:     2,
+				RefillInterval: 10 * time.Millisecond,
+				Enabled:        true,
+			},
 			initialConsumption: 5,
 			waitRefills:        3,
 			expectedTokens:     5,
 		},
 		{
-			name:               "partial refill",
-			maxTokens:          10,
-			refillRate:         3,
-			refillInterval:     10 * time.Millisecond,
+			name: "partial refill",
+			config: RateLimiterConfig{
+				MaxTokens:      10,
+				RefillRate:     3,
+				RefillInterval: 10 * time.Millisecond,
+				Enabled:        true,
+			},
 			initialConsumption: 6,
 			waitRefills:        2,
 			expectedTokens:     10,
 		},
 		{
-			name:               "no refill needed",
-			maxTokens:          5,
-			refillRate:         2,
-			refillInterval:     10 * time.Millisecond,
+			name: "no refill needed",
+			config: RateLimiterConfig{
+				MaxTokens:      5,
+				RefillRate:     2,
+				RefillInterval: 10 * time.Millisecond,
+				Enabled:        true,
+			},
 			initialConsumption: 0,
 			waitRefills:        3,
 			expectedTokens:     5,
@@ -105,17 +119,17 @@ func TestRateLimiter_Refill(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rl := NewRateLimiter(tt.maxTokens, tt.refillRate, tt.refillInterval, logger)
+			rl := NewRateLimiter(tt.config, logger)
 			defer rl.Stop()
 
 			for i := 0; i < tt.initialConsumption; i++ {
 				rl.Allow()
 			}
 
-			time.Sleep(tt.refillInterval * time.Duration(tt.waitRefills+1))
+			time.Sleep(tt.config.RefillInterval * time.Duration(tt.waitRefills+1))
 
 			remaining := 0
-			for i := 0; i < tt.maxTokens*2; i++ {
+			for i := 0; i < tt.config.MaxTokens*2; i++ {
 				if rl.Allow() {
 					remaining++
 				} else {
@@ -135,8 +149,14 @@ func TestRateLimiter_ConcurrentAccess(t *testing.T) {
 
 	logger, _ := zap.NewDevelopment()
 
-	maxTokens := 100
-	rl := NewRateLimiter(maxTokens, 10, 50*time.Millisecond, logger)
+	config := RateLimiterConfig{
+		MaxTokens:      100,
+		RefillRate:     10,
+		RefillInterval: 50 * time.Millisecond,
+		Enabled:        true,
+	}
+
+	rl := NewRateLimiter(config, logger)
 	defer rl.Stop()
 
 	concurrency := 10
@@ -161,14 +181,21 @@ func TestRateLimiter_ConcurrentAccess(t *testing.T) {
 		}
 	}
 
-	assert.LessOrEqual(t, allowed, maxTokens+30, "Allowed requests should not significantly exceed max tokens")
-	assert.GreaterOrEqual(t, allowed, maxTokens, "Should allow at least maxTokens requests")
+	assert.LessOrEqual(t, allowed, config.MaxTokens+30, "Allowed requests should not significantly exceed max tokens")
+	assert.GreaterOrEqual(t, allowed, config.MaxTokens, "Should allow at least maxTokens requests")
 }
 
 func TestRateLimiter_Stop(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 
-	rl := NewRateLimiter(5, 1, 10*time.Millisecond, logger)
+	config := RateLimiterConfig{
+		MaxTokens:      5,
+		RefillRate:     1,
+		RefillInterval: 10 * time.Millisecond,
+		Enabled:        true,
+	}
+
+	rl := NewRateLimiter(config, logger)
 
 	rl.Stop()
 
@@ -176,7 +203,7 @@ func TestRateLimiter_Stop(t *testing.T) {
 		rl.Stop()
 	})
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < config.MaxTokens; i++ {
 		assert.True(t, rl.Allow())
 	}
 

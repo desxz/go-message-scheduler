@@ -7,6 +7,13 @@ import (
 	"go.uber.org/zap"
 )
 
+type RateLimiterConfig struct {
+	MaxTokens      int           `mapstructure:"maxTokens"`
+	RefillRate     int           `mapstructure:"refillRate"`
+	RefillInterval time.Duration `mapstructure:"refillInterval"`
+	Enabled        bool          `mapstructure:"enabled"`
+}
+
 type RateLimiter struct {
 	tokens         int
 	maxTokens      int
@@ -18,12 +25,12 @@ type RateLimiter struct {
 	stopOnce       sync.Once
 }
 
-func NewRateLimiter(maxTokens, refillRate int, refillInterval time.Duration, logger *zap.Logger) *RateLimiter {
+func NewRateLimiter(config RateLimiterConfig, logger *zap.Logger) *RateLimiter {
 	rl := &RateLimiter{
-		tokens:         maxTokens,
-		maxTokens:      maxTokens,
-		refillRate:     refillRate,
-		refillInterval: refillInterval,
+		tokens:         config.MaxTokens,
+		maxTokens:      config.MaxTokens,
+		refillRate:     config.RefillRate,
+		refillInterval: config.RefillInterval,
 		logger:         logger.With(zap.String("component", "ratelimiter")),
 		stopRefill:     make(chan struct{}),
 	}

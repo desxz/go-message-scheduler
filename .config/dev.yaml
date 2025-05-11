@@ -11,3 +11,8 @@ pool:
   numWorkers: 2
   timeout: 10s
   initialJobFetch: true
+rateLimiter:
+  maxTokens: 2
+  refillRate: 2
+  refillInterval: 2m
+  enabled: true
