@@ -74,13 +74,17 @@ func main() {
 		logger.Fatal("Failed to parse REDIS_DB", zap.Error(err))
 	}
 
-	// Fix the environment variable name to match docker-compose.yml
 	messageCache := NewRedisCache(os.Getenv("REDIS_URI"), os.Getenv("REDIS_PASSWORD"), redisDB, config.Cache)
 
 	poolWg := &sync.WaitGroup{}
 	pool := NewWorkerPool(config.Pool.NumWorkers, messagesRepository, webhookClient, messageCache, *config, logger, poolWg, config.Pool.InitialJobFetch)
 	pool.Start()
 	defer pool.Shutdown(poolCtx)
+
+	messageHandler.RegisterRoutes(app)
+
+	workerPoolHandler := NewWorkerPoolHandler(pool)
+	workerPoolHandler.RegisterRoutes(app)
 
 	go func() {
 		if err := app.Listen(os.Getenv("SERVER_PORT")); err != nil {

@@ -21,7 +21,7 @@ type PoolConfig struct {
 	InitialJobFetch bool          `mapstructure:"initialJobFetch"`
 }
 
-type WorkerPool struct {
+type WorkerPoolImpl struct {
 	numWorkers int
 	logger     *zap.Logger
 	wg         *sync.WaitGroup
@@ -46,9 +46,9 @@ func NewWorkerPool(
 	logger *zap.Logger,
 	wg *sync.WaitGroup,
 	canFetchNewJobsInitial bool,
-) *WorkerPool {
+) *WorkerPoolImpl {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &WorkerPool{
+	return &WorkerPoolImpl{
 		numWorkers:         numWorkers,
 		logger:             logger.With(zap.String("component", "workerpool")),
 		poolCtx:            ctx,
@@ -62,7 +62,7 @@ func NewWorkerPool(
 	}
 }
 
-func (p *WorkerPool) Start() {
+func (p *WorkerPoolImpl) Start() {
 	if p.numWorkers <= 0 {
 		return
 	}
@@ -90,7 +90,7 @@ func (p *WorkerPool) Start() {
 	}
 }
 
-func (p *WorkerPool) ResumeFetching() {
+func (p *WorkerPoolImpl) ResumeFetching() {
 	p.canFetchNewJobsMutex.Lock()
 	defer p.canFetchNewJobsMutex.Unlock()
 	if p.canFetchNewJobs {
@@ -101,7 +101,7 @@ func (p *WorkerPool) ResumeFetching() {
 	p.canFetchNewJobs = true
 }
 
-func (p *WorkerPool) PauseFetching() {
+func (p *WorkerPoolImpl) PauseFetching() {
 	p.canFetchNewJobsMutex.Lock()
 	defer p.canFetchNewJobsMutex.Unlock()
 	if !p.canFetchNewJobs {
@@ -112,7 +112,7 @@ func (p *WorkerPool) PauseFetching() {
 	p.canFetchNewJobs = false
 }
 
-func (p *WorkerPool) GetStatus() string {
+func (p *WorkerPoolImpl) GetStatus() string {
 	p.canFetchNewJobsMutex.Lock()
 	defer p.canFetchNewJobsMutex.Unlock()
 	if p.canFetchNewJobs {
@@ -121,7 +121,7 @@ func (p *WorkerPool) GetStatus() string {
 	return StatusPaused
 }
 
-func (p *WorkerPool) Shutdown(timeoutCtx context.Context) error {
+func (p *WorkerPoolImpl) Shutdown(timeoutCtx context.Context) error {
 	p.PauseFetching()
 
 	p.poolCancel()
