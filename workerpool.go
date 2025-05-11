@@ -32,6 +32,8 @@ type WorkerPoolImpl struct {
 	canFetchNewJobsMutex sync.Mutex
 	canFetchNewJobs      bool
 
+	rateLimiter *RateLimiter
+
 	workerMessageStore WorkerMessageStore
 	webhookClient      WebhookClient
 	workerMessageCache WorkerMessageCache
@@ -49,9 +51,11 @@ func NewWorkerPool(
 	wg *sync.WaitGroup,
 	canFetchNewJobsInitial bool,
 	validate *validator.Validate,
+	rateLimiter *RateLimiter,
 ) *WorkerPoolImpl {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &WorkerPoolImpl{
+
+	pool := &WorkerPoolImpl{
 		numWorkers:         numWorkers,
 		logger:             logger.With(zap.String("component", "workerpool")),
 		poolCtx:            ctx,
@@ -63,7 +67,10 @@ func NewWorkerPool(
 		canFetchNewJobs:    canFetchNewJobsInitial,
 		wg:                 wg,
 		validate:           validate,
+		rateLimiter:        rateLimiter,
 	}
+
+	return pool
 }
 
 func (p *WorkerPoolImpl) Start() {
@@ -85,13 +92,19 @@ func (p *WorkerPoolImpl) Start() {
 			p.validate,
 		)
 
-		canFetchFunc := func() bool {
+		canProcessFunc := func() bool {
 			p.canFetchNewJobsMutex.Lock()
-			defer p.canFetchNewJobsMutex.Unlock()
-			return p.canFetchNewJobs
+			canFetch := p.canFetchNewJobs
+			p.canFetchNewJobsMutex.Unlock()
+
+			if !canFetch {
+				return false
+			}
+
+			return p.rateLimiter.Allow()
 		}
 
-		go instance.Start(context.Background(), p.wg, canFetchFunc)
+		go instance.Start(context.Background(), p.wg, canProcessFunc)
 	}
 }
 
@@ -128,6 +141,12 @@ func (p *WorkerPoolImpl) GetStatus() string {
 
 func (p *WorkerPoolImpl) Shutdown(timeoutCtx context.Context) error {
 	p.PauseFetching()
+
+	// Stop the rate limiter
+	if p.rateLimiter != nil {
+		p.logger.Info("Stopping rate limiter")
+		p.rateLimiter.Stop()
+	}
 
 	p.poolCancel()
 

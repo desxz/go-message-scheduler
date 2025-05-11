@@ -11,7 +11,6 @@ type RateLimiterConfig struct {
 	MaxTokens      int           `mapstructure:"maxTokens"`
 	RefillRate     int           `mapstructure:"refillRate"`
 	RefillInterval time.Duration `mapstructure:"refillInterval"`
-	Enabled        bool          `mapstructure:"enabled"`
 }
 
 type RateLimiter struct {

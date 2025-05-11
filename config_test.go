@@ -42,7 +42,6 @@ func TestConfig_New(t *testing.T) {
 					MaxTokens:      2,
 					RefillRate:     2,
 					RefillInterval: 2 * time.Minute,
-					Enabled:        true,
 				},
 			},
 			wantErr: false,

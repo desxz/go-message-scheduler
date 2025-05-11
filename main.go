@@ -79,8 +79,10 @@ func main() {
 
 	validate := validator.New()
 
+	rateLimiter := NewRateLimiter(config.RateLimiter, logger)
+
 	poolWg := &sync.WaitGroup{}
-	pool := NewWorkerPool(config.Pool.NumWorkers, messagesRepository, webhookClient, messageCache, *config, logger, poolWg, config.Pool.InitialJobFetch, validate)
+	pool := NewWorkerPool(config.Pool.NumWorkers, messagesRepository, webhookClient, messageCache, *config, logger, poolWg, config.Pool.InitialJobFetch, validate, rateLimiter)
 	pool.Start()
 	defer pool.Shutdown(poolCtx)
 

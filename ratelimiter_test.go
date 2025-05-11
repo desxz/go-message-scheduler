@@ -23,7 +23,6 @@ func TestRateLimiter_Allow(t *testing.T) {
 				MaxTokens:      5,
 				RefillRate:     2,
 				RefillInterval: time.Minute,
-				Enabled:        true,
 			},
 			requests:            10,
 			expectedAllowedReqs: 5,
@@ -34,7 +33,6 @@ func TestRateLimiter_Allow(t *testing.T) {
 				MaxTokens:      1,
 				RefillRate:     1,
 				RefillInterval: time.Minute,
-				Enabled:        true,
 			},
 			requests:            3,
 			expectedAllowedReqs: 1,
@@ -45,7 +43,6 @@ func TestRateLimiter_Allow(t *testing.T) {
 				MaxTokens:      0,
 				RefillRate:     0,
 				RefillInterval: time.Minute,
-				Enabled:        true,
 			},
 			requests:            5,
 			expectedAllowedReqs: 0,
@@ -85,7 +82,6 @@ func TestRateLimiter_Refill(t *testing.T) {
 				MaxTokens:      5,
 				RefillRate:     2,
 				RefillInterval: 10 * time.Millisecond,
-				Enabled:        true,
 			},
 			initialConsumption: 5,
 			waitRefills:        3,
@@ -97,7 +93,6 @@ func TestRateLimiter_Refill(t *testing.T) {
 				MaxTokens:      10,
 				RefillRate:     3,
 				RefillInterval: 10 * time.Millisecond,
-				Enabled:        true,
 			},
 			initialConsumption: 6,
 			waitRefills:        2,
@@ -109,7 +104,6 @@ func TestRateLimiter_Refill(t *testing.T) {
 				MaxTokens:      5,
 				RefillRate:     2,
 				RefillInterval: 10 * time.Millisecond,
-				Enabled:        true,
 			},
 			initialConsumption: 0,
 			waitRefills:        3,
@@ -153,7 +147,6 @@ func TestRateLimiter_ConcurrentAccess(t *testing.T) {
 		MaxTokens:      100,
 		RefillRate:     10,
 		RefillInterval: 50 * time.Millisecond,
-		Enabled:        true,
 	}
 
 	rl := NewRateLimiter(config, logger)
@@ -192,7 +185,6 @@ func TestRateLimiter_Stop(t *testing.T) {
 		MaxTokens:      5,
 		RefillRate:     1,
 		RefillInterval: 10 * time.Millisecond,
-		Enabled:        true,
 	}
 
 	rl := NewRateLimiter(config, logger)
