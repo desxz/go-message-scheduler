@@ -131,14 +131,6 @@ API documentation is available through Swagger UI at `http://localhost:3000/swag
 - Stuck messages can be sent or not. We cannot duplicated sending messages, so we need to check if the message is already sent before sending it again.
 - If messages are not sent, we can mark them as `unsent` and retry sending them later.
 
-### Other Improvements
-
-- Enhanced observability with distributed tracing
-- Horizontal scaling of worker nodes
-- Message priority queues
-- Enhanced security features like OAuth2 integration
-- Performance optimization for high-throughput scenarios
-
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
